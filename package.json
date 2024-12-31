@@ -1,0 +1,28 @@
+{
+  "name": "dynamodb",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "npx ts-node src/index.ts",
+    "compile": "tsc",
+    "dev": "npm run compile && node ./dist/index.js --trace-warnings",
+    "dev:watch": "nodemon --exec ts-node src/index.ts"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.716.0",
+    "apollo-server": "^3.13.0",
+    "aws-sdk": "^2.1692.0",
+    "dotenv": "^16.0.0",
+    "graphql": "^16.10.0",
+    "uuid": "^11.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "nodemon": "^3.1.9",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2"
+  }
+}
