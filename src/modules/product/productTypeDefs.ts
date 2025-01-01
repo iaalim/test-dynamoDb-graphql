@@ -8,14 +8,26 @@ export const productTypeDefs = gql`
     category: String!
   }
 
+  type ProductResponse {
+    success: Boolean!
+    message: String!
+    data: Product
+  }
+
+  type ProductResponseList {
+    success: Boolean!
+    message: String!
+    data: [Product]
+  }
+
   type Query {
-    getProductById(productId: String!): Product
-    listProducts: [Product!]!
+    getProductById(productId: String!): ProductResponse!
+    listProducts: ProductResponseList!
   }
 
   type Mutation {
-    createProduct(name: String!, price: Float!, category: String!): Product
-    updateProduct(productId: String!, name: String!, price: Float!, category: String!): Product
-    deleteProduct(productId: String!): Boolean
+    createProduct(name: String!, price: Float!, category: String!): ProductResponse!
+    updateProduct(productId: String!, name: String!, price: Float!, category: String!): ProductResponse!
+    deleteProduct(productId: String!): ProductResponse!
   }
 `;
