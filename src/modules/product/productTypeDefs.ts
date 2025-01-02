@@ -6,6 +6,7 @@ export const productTypeDefs = gql`
     name: String!
     price: Float!
     category: String!
+    quantity: Float!
   }
 
   type ProductResponse {
@@ -26,7 +27,7 @@ export const productTypeDefs = gql`
   }
 
   type Mutation {
-    createProduct(name: String!, price: Float!, category: String!): ProductResponse!
+    createProduct(name: String!, price: Float!, category: String!, quantity: Float!): ProductResponse!
     updateProduct(productId: String!, name: String!, price: Float!, category: String!): ProductResponse!
     deleteProduct(productId: String!): ProductResponse!
   }

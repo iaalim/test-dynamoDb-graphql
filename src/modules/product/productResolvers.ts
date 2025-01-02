@@ -48,7 +48,7 @@ export const productResolvers = {
   Mutation: {
     createProduct: async (
       _: any,
-      { name, price, category }: { name: string; price: number; category: string }
+      { name, price, category, quantity }: { name: string; price: number; category: string; quantity: number }
     ) => {
       try {
         const productId = uuidv4();
@@ -57,6 +57,7 @@ export const productResolvers = {
           name,
           price,
           category,
+          quantity,
         });
 
         const params = {
@@ -69,7 +70,7 @@ export const productResolvers = {
         return {
           success: true,
           message: 'Product created successfully',
-          data: { productId, name, price, category },
+          data: { productId, name, price, category, quantity },
         };
       } catch (error) {
         return { success: false, message: error, data: null };
@@ -83,17 +84,19 @@ export const productResolvers = {
         name,
         price,
         category,
-      }: { productId: string; name: string; price: number; category: string }
+        quantity,
+      }: { productId: string; name: string; price: number; category: string; quantity: number }
     ) => {
       try {
         const params = {
           TableName: 'Products',
           Key: DynamoDB.Converter.marshall({ productId }),
-          UpdateExpression: 'SET name = :name, price = :price, category = :category',
+          UpdateExpression: 'SET name = :name, price = :price, category = :category, quantity = :quantity',
           ExpressionAttributeValues: DynamoDB.Converter.marshall({
             ':name': name,
             ':price': price,
             ':category': category,
+            ':quantity': quantity,
           }),
           ReturnValues: 'ALL_NEW',
         };
