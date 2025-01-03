@@ -50,26 +50,42 @@ export const orderResolvers = {
   Mutation: {
     createOrder: async (
       _: any,
-      { userId, productIds, status }: { userId: string; productIds: string[]; status: string }
+      { userId, products, status }: { userId: string; products: { productId: string, quantity: number }[]; status: string }
     ) => {
       try {
         const orderId = uuidv4();
-        const params = {
-          TableName: 'Orders',
-          Item: DynamoDB.Converter.marshall({
-            orderId,
-            userId,
-            productIds,
-            status,
-          }),
+
+        const orderItem = {
+          orderId,
+          userId,
+          status,
+          products: products.map(p => ({ productId: p.productId, quantity: p.quantity })),
         };
 
-        await dynamodb.putItem(params).promise();
+        const transactItems = [
+          {
+            Put: {
+              TableName: 'Orders',
+              Item: DynamoDB.Converter.marshall(orderItem),
+            },
+          },
+          ...products.map((product) => ({
+            Update: {
+              TableName: 'Products',
+              Key: DynamoDB.Converter.marshall({ productId: product.productId }),
+              UpdateExpression: 'SET #quantity = #quantity - :quantity',
+              ExpressionAttributeNames: { '#quantity': 'quantity' },
+              ExpressionAttributeValues: DynamoDB.Converter.marshall({ ':quantity': product.quantity }),
+            },
+          }))
+        ];
+
+        await dynamodb.transactWriteItems({ TransactItems: transactItems }).promise();
 
         return {
           success: true,
           message: 'Order created successfully',
-          data: { orderId, userId, productIds, status },
+          data: orderItem,
         };
       } catch (error) {
         return { success: false, message: error, data: null };
@@ -139,12 +155,12 @@ export const orderResolvers = {
         throw new Error('Error fetching user');
       }
     },
-    products: async (order: { productIds: any[]; }) => {
+    products: async (order: { products: any[]; }) => {
       try {
-        const productPromises = order.productIds.map(async (productId: any) => {
+        const productPromises = order.products.map(async (product: any) => {
           const params = {
             TableName: 'Products',
-            Key: DynamoDB.Converter.marshall({ productId }),
+            Key: DynamoDB.Converter.marshall({ productId: product.productId }),
           };
           const result = await dynamodb.getItem(params).promise();
           return result.Item ? DynamoDB.Converter.unmarshall(result.Item) : null;

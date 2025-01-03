@@ -4,10 +4,13 @@ export const orderTypeDefs = gql`
   type Order {
     orderId: String!
     userId: String!
-    productIds: [String!]!
-    user: User
-    products: [Product]
+    products: [Product]!
     status: String!
+  }
+
+  type Product {
+    productId: String!
+    quantity: Float!
   }
 
   type OrderResponse {
@@ -28,8 +31,13 @@ export const orderTypeDefs = gql`
   }
 
   type Mutation {
-    createOrder(userId: String!, productIds: [String!]!, status: String!): OrderResponse!
+    createOrder(userId: String!, products: [ProductInput!]!, status: String!): OrderResponse!
     updateOrderStatus(orderId: String!, status: String!): OrderResponse!
     deleteOrder(orderId: String!): OrderResponse!
+  }
+
+  input ProductInput {
+    productId: String!
+    quantity: Float!
   }
 `;
