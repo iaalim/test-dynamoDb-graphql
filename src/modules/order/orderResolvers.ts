@@ -2,6 +2,10 @@ import { DynamoDB } from 'aws-sdk';
 import dynamodb from '../../config/dynamodbClient';
 import { v4 as uuidv4 } from 'uuid';
 
+const SEGMENT_SIZE_MB = 1;
+const MAX_SEGMENTS = 100;
+const MIN_SEGMENTS = 1;
+
 export const orderResolvers = {
   Query: {
     getOrderById: async (_: any, { orderId }: { orderId: string }) => {
@@ -29,8 +33,83 @@ export const orderResolvers = {
     },
 
     listOrders: async () => {
+      const calculateTotalSegments = async () => {
+        try {
+          const tableInfo = await dynamodb.describeTable({ TableName: 'Orders' }).promise();
+          const tableSizeBytes = tableInfo.Table?.TableSizeBytes || 0;
+          console.log("tableInfo", tableInfo)
+
+          return Math.max(
+            MIN_SEGMENTS,
+            Math.min(MAX_SEGMENTS, Math.ceil(tableSizeBytes / (SEGMENT_SIZE_MB * 1024 * 1024)))
+          );
+        } catch (error) {
+          return MIN_SEGMENTS;
+        }
+      };
+
+      const scanSegment = async (segment: number, totalSegments: number): Promise<any[]> => {
+        let items: any[] = [];
+        let lastEvaluatedKey: DynamoDB.Key | undefined = undefined;
+
+        try {
+          do {
+            const params: DynamoDB.ScanInput = {
+              TableName: 'Orders',
+              Segment: segment,
+              TotalSegments: totalSegments,
+              ExclusiveStartKey: lastEvaluatedKey,
+            };
+
+            const result = await dynamodb.scan(params).promise();
+
+            if (result.Items) {
+              items = items.concat(
+                result.Items.map((item) => DynamoDB.Converter.unmarshall(item))
+              );
+            }
+            console.log("results LastEvaluatedKey-----", result.Items)
+
+            lastEvaluatedKey = result.LastEvaluatedKey;
+          } while (lastEvaluatedKey);
+
+          return items;
+        } catch (error) {
+          console.error(`Error scanning segment ${segment}:`, error);
+          return [];
+        }
+      };
+
       try {
-        const params = { TableName: 'Orders' };
+        const totalSegments = await calculateTotalSegments();
+        console.log(`TotalSegments: ${totalSegments}`);
+
+        const scanPromises: Promise<any[]>[] = Array.from(
+          { length: totalSegments },
+          (_, index) => scanSegment(index, totalSegments)
+        );
+
+        const segmentsData = await Promise.all(scanPromises);
+
+        const orders = segmentsData.flat();
+
+        return {
+          success: true,
+          message: 'Orders list retrieved successfully',
+          data: orders,
+        };
+      } catch (error) {
+        return { success: false, message: error, data: null };
+      }
+    },
+
+    getOrdersByUserId: async (_: any, { userId }: { userId: string }) => {
+      try {
+        const params = {
+          TableName: 'Orders',
+          FilterExpression: 'userId = :userId',
+          ExpressionAttributeValues: DynamoDB.Converter.marshall({ ':userId': userId }),
+        };
         const result = await dynamodb.scan(params).promise();
 
         const orders =
