@@ -28,6 +28,7 @@ export const orderTypeDefs = gql`
   type Query {
     getOrderById(orderId: String!): OrderResponse!
     listOrders: OrderResponseList!
+    getOrdersByUserId(userId: String!): OrderResponseList!
   }
 
   type Mutation {
