@@ -1,6 +1,6 @@
 import { DynamoDB } from 'aws-sdk';
 import dynamodb from '../../config/dynamodbClient';
-import { v4 as uuidv4 } from 'uuid';
+// import { v4 as uuidv4 } from 'uuid';
 
 export const userResolvers = {
   Query: {
@@ -70,32 +70,32 @@ export const userResolvers = {
   },
 
   Mutation: {
-    createUser: async (_: any, { name, email }: { name: string; email: string }) => {
-      try {
-        const id = uuidv4();
+    // createUser: async (_: any, { name, email }: { name: string; email: string }) => {
+    //   try {
+    //     const id = uuidv4();
 
-        const item = DynamoDB.Converter.marshall({
-          id,
-          name,
-          email,
-        });
+    //     const item = DynamoDB.Converter.marshall({
+    //       id,
+    //       name,
+    //       email,
+    //     });
 
-        const params = {
-          TableName: 'Users',
-          Item: item,
-        };
+    //     const params = {
+    //       TableName: 'Users',
+    //       Item: item,
+    //     };
 
-        await dynamodb.putItem(params).promise();
+    //     await dynamodb.putItem(params).promise();
 
-        return {
-          success: true,
-          message: 'User created successfully',
-          data: { id, name, email },
-        };
-      } catch (error) {
-        return { success: false, message: error, data: null };
-      }
-    },
+    //     return {
+    //       success: true,
+    //       message: 'User created successfully',
+    //       data: { id, name, email },
+    //     };
+    //   } catch (error) {
+    //     return { success: false, message: error, data: null };
+    //   }
+    // },
 
     updateUser: async (
       _: any,

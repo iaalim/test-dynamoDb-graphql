@@ -6,7 +6,7 @@ const server = new ApolloServer({
   typeDefs,
   resolvers,
   context: ({ req }) => {
-    return {};
+    return { req };
   },
 });
 
