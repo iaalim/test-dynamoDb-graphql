@@ -28,11 +28,10 @@ export const orderTypeDefs = gql`
   type Query {
     getOrderById(orderId: String!): OrderResponse!
     listOrders: OrderResponseList!
-    getOrdersByUserId(userId: String!): OrderResponseList!
   }
 
   type Mutation {
-    createOrder(userId: String!, products: [ProductInput!]!, status: String!): OrderResponse!
+    createOrder(products: [ProductInput!]!, status: String!): OrderResponse!
     updateOrderStatus(orderId: String!, status: String!): OrderResponse!
     deleteOrder(orderId: String!): OrderResponse!
   }

@@ -1,12 +1,13 @@
+import { authMiddleware } from '../auth/authMiddleware';
 import { DynamoDB } from 'aws-sdk';
 import dynamodb from '../../config/dynamodbClient';
-// import { v4 as uuidv4 } from 'uuid';
 
 export const userResolvers = {
   Query: {
-    getUserById: async (_: any, { id }: { id: string }) => {
+    getUserById: authMiddleware(async (_: any, { id }: { id: string }, context: any) => {
       try {
-        const params = { TableName: 'Users', Key: DynamoDB.Converter.marshall({ id }), };
+        console.log("-------",context.user.id)
+        const params = { TableName: 'Users', Key: DynamoDB.Converter.marshall({ id }) };
 
         const result = await dynamodb.getItem(params).promise();
         if (!result.Item) {
@@ -21,9 +22,9 @@ export const userResolvers = {
       } catch (error) {
         return { success: false, message: error, data: null };
       }
-    },
+    }),
 
-    getUserByEmail: async (_: any, { email }: { email: string }) => {
+    getUserByEmail: authMiddleware(async (_: any, { email }: { email: string }, context: any) => {
       try {
         const params = {
           TableName: 'Users',
@@ -47,14 +48,13 @@ export const userResolvers = {
       } catch (error) {
         return { success: false, message: error, data: null };
       }
-    },
+    }),
 
-    listUsers: async () => {
+    listUsers: authMiddleware(async (_: any, __: any, context: any) => {
       try {
         const params = { TableName: 'Users' };
 
         const result = await dynamodb.scan(params).promise();
-
         const users =
           result.Items?.map((item) => DynamoDB.Converter.unmarshall(item)) || [];
 
@@ -66,41 +66,11 @@ export const userResolvers = {
       } catch (error) {
         return { success: false, message: error, data: null };
       }
-    },
+    }),
   },
 
   Mutation: {
-    // createUser: async (_: any, { name, email }: { name: string; email: string }) => {
-    //   try {
-    //     const id = uuidv4();
-
-    //     const item = DynamoDB.Converter.marshall({
-    //       id,
-    //       name,
-    //       email,
-    //     });
-
-    //     const params = {
-    //       TableName: 'Users',
-    //       Item: item,
-    //     };
-
-    //     await dynamodb.putItem(params).promise();
-
-    //     return {
-    //       success: true,
-    //       message: 'User created successfully',
-    //       data: { id, name, email },
-    //     };
-    //   } catch (error) {
-    //     return { success: false, message: error, data: null };
-    //   }
-    // },
-
-    updateUser: async (
-      _: any,
-      { id, name, email }: { id: string; name: string; email: string }
-    ) => {
+    updateUser: authMiddleware(async (_: any, { id, name, email }: any, context: any) => {
       try {
         const params = {
           TableName: 'Users',
@@ -130,9 +100,9 @@ export const userResolvers = {
       } catch (error) {
         return { success: false, message: error, data: null };
       }
-    },
+    }),
 
-    deleteUser: async (_: any, { id }: { id: string }) => {
+    deleteUser: authMiddleware(async (_: any, { id }: { id: string }, context: any) => {
       try {
         const params = {
           TableName: 'Users',
@@ -149,6 +119,6 @@ export const userResolvers = {
       } catch (error) {
         return { success: false, message: error, data: null };
       }
-    },
+    }),
   },
 };

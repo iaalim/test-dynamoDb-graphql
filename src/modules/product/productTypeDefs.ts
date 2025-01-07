@@ -19,11 +19,12 @@ export const productTypeDefs = gql`
     success: Boolean!
     message: String!
     data: [Product]
+    nextToken: String
   }
 
   type Query {
     getProductById(productId: String!): ProductResponse!
-    listProducts: ProductResponseList!
+    listProducts(limit: Int, nextToken: String): ProductResponseList!
   }
 
   type Mutation {

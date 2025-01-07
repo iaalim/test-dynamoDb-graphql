@@ -26,18 +26,29 @@ export const productResolvers = {
       }
     },
 
-    listProducts: async () => {
+    listProducts: async (_: any, { limit = 10, nextToken }: { limit: number, nextToken?: string }) => {
       try {
-        const params = { TableName: 'Products' };
-
+        const params: DynamoDB.ScanInput = {
+          TableName: 'Products',
+          ExclusiveStartKey: nextToken
+            ? DynamoDB.Converter.marshall({ productId: nextToken })
+            : undefined,
+          Limit: limit,
+        };
+    
         const result = await dynamodb.scan(params).promise();
         const products =
           result.Items?.map((item) => DynamoDB.Converter.unmarshall(item)) || [];
+    
+        const newNextToken = result.LastEvaluatedKey
+          ? DynamoDB.Converter.unmarshall(result.LastEvaluatedKey).productId
+          : null;
 
         return {
           success: true,
           message: 'Products retrieved successfully',
           data: products,
+          nextToken: newNextToken,
         };
       } catch (error) {
         return { success: false, message: error, data: null };
